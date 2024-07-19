@@ -1,6 +1,6 @@
 {
-  "name": "puppeteer-extra-plugin-recaptcha-2captcha-capmonster",
-  "version": "3.6.8",
+  "name": "puppeteer-extra-plugin-recaptcha-v4",
+  "version": "4.0.1",
   "description": "A puppeteer-extra plugin to solve reCAPTCHAs and hCaptchas automatically.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -8,15 +8,15 @@
   "files": [
     "dist"
   ],
-  "repository": "ilyassBZ/puppeteer-extra-plugin-recaptcha-2captcha-capmonster",
-  "homepage": "https://github.com/ilyassBZ/puppeteer-extra-plugin-recaptcha-2captcha-capmonster",
+  "repository": "ilyassBZ/puppeteer-extra-plugin-recaptcha-v4",
+  "homepage": "https://github.com/ilyassBZ/puppeteer-extra-plugin-recaptcha-v4",
   "author": "berstend",
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist/*",
     "tscheck": "tsc --pretty --noEmit",
     "prebuild": "run-s clean",
-    "build": "run-s build:tsc build:rollup ambient-dts",
+    "build": "yarn clean && tsc --project tsconfig.json --module commonjs && rollup -c rollup.config.js --bundleConfigAsCjs && yarn ambient-dts",
     "build:tsc": "tsc --project tsconfig.json --module commonjs",
     "build:rollup": "rollup -c rollup.config.ts",
     "docs": "node -e 0",

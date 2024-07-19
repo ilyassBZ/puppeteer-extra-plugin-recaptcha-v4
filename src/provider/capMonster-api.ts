@@ -2,19 +2,20 @@
 
 var https = require('https')
 var url = require('url')
+var querystring = require('querystring')
 
 var apiKey
 var apiUrl = 'https://api.capmonster.cloud'
-var apiInUrl = 'http://api.capmonster.cloud/in.php'
+var apiInUrl = 'https://api.capmonster.cloud/in.php'
 
 var defaultOptions = {
   pollingInterval: 40000,
-  retries: 4
+  retries: 4,
 }
 
 function pollCaptcha(captchaId, options, invalid, callback) {
   invalid = invalid.bind({ options: options, captchaId: captchaId })
-  var intervalId = setInterval(function() {
+  var intervalId = setInterval(function () {
     var httpsRequestOptions = {
       method: 'POST',
       hostname: apiUrl,
@@ -22,17 +23,22 @@ function pollCaptcha(captchaId, options, invalid, callback) {
       headers: {
         clientKey: apiKey,
         taskId: captchaId,
-        nocache: 1
-      }
+        nocache: 1,
+      },
     }
-    var request = https.request(httpsRequestOptions, function(response) {
+    var request = https.request(httpsRequestOptions, function (response) {
       var body = ''
 
-      response.on('data', function(chunk) {
-        body += chunk
+      response.on('data', function (chunk) {
+        console.log(chunk)
+        try {
+          body += chunk.toString()
+        } catch (error) {
+          throw error
+        }
       })
 
-      response.on('end', function() {
+      response.on('end', function () {
         const res = JSON.parse(body)
         if (res.status === 'processing') {
           return
@@ -47,15 +53,15 @@ function pollCaptcha(captchaId, options, invalid, callback) {
             null,
             {
               id: captchaId,
-              text: res.solution.gRecaptchaResponse
+              text: res.solution.gRecaptchaResponse,
             },
-            invalid
+            invalid,
           )
         }
-        callback = function() {} // prevent the callback from being called more than once, if multiple https requests are open at the same time.
+        callback = function () {} // prevent the callback from being called more than once, if multiple https requests are open at the same time.
       })
     })
-    request.on('error', function(e) {
+    request.on('error', function (e) {
       request.destroy()
       callback(e)
     })
@@ -63,31 +69,32 @@ function pollCaptcha(captchaId, options, invalid, callback) {
   }, options.pollingInterval || defaultOptions.pollingInterval)
 }
 
-export const setApiKey = function(key) {
+export const setApiKey = function (key) {
   apiKey = key
 }
 
-export const decodeReCaptcha = function(
+export const decodeReCaptcha = function (
   captchaMethod,
   captcha,
   pageUrl,
   extraData,
   options,
-  callback
+  callback,
 ) {
   if (!callback) {
     callback = options
     options = defaultOptions
   }
-  var httpsRequestOptions = url.URL(apiInUrl)
+  var httpsRequestOptions = url.parse(apiInUrl)
   httpsRequestOptions.method = 'POST'
 
   var postData = {
     key: apiKey,
     method: captchaMethod,
     pageURL: pageUrl,
-    ...extraData
+    ...extraData,
   }
+
   if (captchaMethod === 'userrecaptcha') {
     postData.googlekey = captcha
   }
@@ -96,14 +103,19 @@ export const decodeReCaptcha = function(
   }
   postData.nocache = 1
 
-  var request = https.request(httpsRequestOptions, function(response) {
+  postData = querystring.stringify(postData)
+  var request = https.request(httpsRequestOptions, function (response) {
     var body = ''
 
-    response.on('data', function(chunk) {
-      body += chunk
+    response.on('data', function (chunk) {
+      try {
+        body += chunk.toString()
+      } catch (error) {
+        throw error
+      }
     })
 
-    response.on('end', function() {
+    response.on('end', function () {
       var result = JSON.parse(body)
       if (result.errorId !== 0) {
         return callback(result.errorCode)
@@ -112,7 +124,7 @@ export const decodeReCaptcha = function(
       pollCaptcha(
         result.taskId,
         options,
-        function(error) {
+        function (error) {
           var callbackToInitialCallback = callback
 
           report(this.captchaId)
@@ -132,17 +144,17 @@ export const decodeReCaptcha = function(
               pageUrl,
               extraData,
               this.options,
-              callback
+              callback,
             )
           } else {
             callbackToInitialCallback('CAPTCHA_FAILED_TOO_MANY_TIMES')
           }
         },
-        callback
+        callback,
       )
     })
   })
-  request.on('error', function(e) {
+  request.on('error', function (e) {
     request.destroy()
     callback(e)
   })
@@ -150,7 +162,7 @@ export const decodeReCaptcha = function(
   request.end()
 }
 
-export const report = function(captchaId) {
+export const report = function (captchaId) {
   var reportUrl =
     apiInUrl +
     '?action=reportbad&soft_id=' +
@@ -160,7 +172,7 @@ export const report = function(captchaId) {
     captchaId
   var options = url.parse(reportUrl)
 
-  var request = https.request(options, function(response) {
+  var request = https.request(options, function (response) {
     // var body = ''
     // response.on('data', function(chunk) {
     //   body += chunk

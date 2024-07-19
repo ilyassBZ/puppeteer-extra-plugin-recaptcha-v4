@@ -13,12 +13,12 @@ var SOFT_ID = '2589'
 
 var defaultOptions = {
   pollingInterval: 2000,
-  retries: 3
+  retries: 3,
 }
 
 function pollCaptcha(captchaId, options, invalid, callback) {
   invalid = invalid.bind({ options: options, captchaId: captchaId })
-  var intervalId = setInterval(function() {
+  var intervalId = setInterval(function () {
     var httpsRequestOptions = url.parse(
       apiResUrl +
         '?action=get&soft_id=' +
@@ -26,16 +26,16 @@ function pollCaptcha(captchaId, options, invalid, callback) {
         '&key=' +
         apiKey +
         '&id=' +
-        captchaId
+        captchaId,
     )
-    var request = https.request(httpsRequestOptions, function(response) {
+    var request = https.request(httpsRequestOptions, function (response) {
       var body = ''
 
-      response.on('data', function(chunk) {
+      response.on('data', function (chunk) {
         body += chunk
       })
 
-      response.on('end', function() {
+      response.on('end', function () {
         if (body === 'CAPCHA_NOT_READY') {
           return
         }
@@ -50,15 +50,15 @@ function pollCaptcha(captchaId, options, invalid, callback) {
             null,
             {
               id: captchaId,
-              text: result[1]
+              text: result[1],
             },
-            invalid
+            invalid,
           )
         }
-        callback = function() {} // prevent the callback from being called more than once, if multiple https requests are open at the same time.
+        callback = function () {} // prevent the callback from being called more than once, if multiple https requests are open at the same time.
       })
     })
-    request.on('error', function(e) {
+    request.on('error', function (e) {
       request.destroy()
       callback(e)
     })
@@ -66,11 +66,11 @@ function pollCaptcha(captchaId, options, invalid, callback) {
   }, options.pollingInterval || defaultOptions.pollingInterval)
 }
 
-export const setApiKey = function(key) {
+export const setApiKey = function (key) {
   apiKey = key
 }
 
-export const decode = function(base64, options, callback) {
+export const decode = function (base64, options, callback) {
   if (!callback) {
     callback = options
     options = defaultOptions
@@ -82,19 +82,19 @@ export const decode = function(base64, options, callback) {
     method: apiMethod,
     key: apiKey,
     soft_id: SOFT_ID,
-    body: base64
+    body: base64,
   }
 
   postData = querystring.stringify(postData)
 
-  var request = https.request(httpsRequestOptions, function(response) {
+  var request = https.request(httpsRequestOptions, function (response) {
     var body = ''
 
-    response.on('data', function(chunk) {
+    response.on('data', function (chunk) {
       body += chunk
     })
 
-    response.on('end', function() {
+    response.on('end', function () {
       var result = body.split('|')
       if (result[0] !== 'OK') {
         return callback(result[0])
@@ -103,7 +103,7 @@ export const decode = function(base64, options, callback) {
       pollCaptcha(
         result[1],
         options,
-        function(error) {
+        function (error) {
           var callbackToInitialCallback = callback
 
           report(this.captchaId)
@@ -122,11 +122,11 @@ export const decode = function(base64, options, callback) {
             callbackToInitialCallback('CAPTCHA_FAILED_TOO_MANY_TIMES')
           }
         },
-        callback
+        callback,
       )
     })
   })
-  request.on('error', function(e) {
+  request.on('error', function (e) {
     request.destroy()
     callback(e)
   })
@@ -135,13 +135,13 @@ export const decode = function(base64, options, callback) {
   request.end()
 }
 
-export const decodeReCaptcha = function(
+export const decodeReCaptcha = function (
   captchaMethod,
   captcha,
   pageUrl,
   extraData,
   options,
-  callback
+  callback,
 ) {
   if (!callback) {
     callback = options
@@ -156,7 +156,7 @@ export const decodeReCaptcha = function(
     soft_id: SOFT_ID,
     // googlekey: captcha,
     pageurl: pageUrl,
-    ...extraData
+    ...extraData,
   }
   if (captchaMethod === 'userrecaptcha') {
     postData.googlekey = captcha
@@ -167,14 +167,14 @@ export const decodeReCaptcha = function(
 
   postData = querystring.stringify(postData)
 
-  var request = https.request(httpsRequestOptions, function(response) {
+  var request = https.request(httpsRequestOptions, function (response) {
     var body = ''
 
-    response.on('data', function(chunk) {
+    response.on('data', function (chunk) {
       body += chunk
     })
 
-    response.on('end', function() {
+    response.on('end', function () {
       var result = body.split('|')
       if (result[0] !== 'OK') {
         return callback(result[0])
@@ -183,7 +183,7 @@ export const decodeReCaptcha = function(
       pollCaptcha(
         result[1],
         options,
-        function(error) {
+        function (error) {
           var callbackToInitialCallback = callback
 
           report(this.captchaId)
@@ -203,17 +203,17 @@ export const decodeReCaptcha = function(
               pageUrl,
               extraData,
               this.options,
-              callback
+              callback,
             )
           } else {
             callbackToInitialCallback('CAPTCHA_FAILED_TOO_MANY_TIMES')
           }
         },
-        callback
+        callback,
       )
     })
   })
-  request.on('error', function(e) {
+  request.on('error', function (e) {
     request.destroy()
     callback(e)
   })
@@ -221,7 +221,7 @@ export const decodeReCaptcha = function(
   request.end()
 }
 
-export const decodeUrl = function(uri, options, callback) {
+export const decodeUrl = function (uri, options, callback) {
   if (!callback) {
     callback = options
     options = defaultOptions
@@ -229,26 +229,26 @@ export const decodeUrl = function(uri, options, callback) {
 
   var options = url.parse(uri)
 
-  var request = https.request(options, function(response) {
+  var request = https.request(options, function (response) {
     var body = ''
     response.setEncoding('base64')
 
-    response.on('data', function(chunk) {
+    response.on('data', function (chunk) {
       body += chunk
     })
 
-    response.on('end', function() {
+    response.on('end', function () {
       decode(body, options, callback)
     })
   })
-  request.on('error', function(e) {
+  request.on('error', function (e) {
     request.destroy()
     callback(e)
   })
   request.end()
 }
 
-export const solveRecaptchaFromHtml = function(html, options, callback) {
+export const solveRecaptchaFromHtml = function (html, options, callback) {
   if (!callback) {
     callback = options
     options = defaultOptions
@@ -262,13 +262,13 @@ export const solveRecaptchaFromHtml = function(html, options, callback) {
 
   var httpsRequestOptions = url.parse(googleUrl)
 
-  var request = https.request(httpsRequestOptions, function(response) {
+  var request = https.request(httpsRequestOptions, function (response) {
     var body = ''
-    response.on('data', function(chunk) {
+    response.on('data', function (chunk) {
       body += chunk
     })
 
-    response.on('end', function() {
+    response.on('end', function () {
       var challengeArr = body.split("'")
       if (!challengeArr[1]) return callback('Parsing captcha failed')
       var challenge = challengeArr[1]
@@ -277,19 +277,19 @@ export const solveRecaptchaFromHtml = function(html, options, callback) {
       decodeUrl(
         'https://www.google.com/recaptcha/api/image?c=' + challenge,
         options,
-        function(error, result, invalid) {
+        function (error, result, invalid) {
           if (result) {
             result.challenge = challenge
           }
           callback(error, result, invalid)
-        }
+        },
       )
     })
   })
   request.end()
 }
 
-export const report = function(captchaId) {
+export const report = function (captchaId) {
   var reportUrl =
     apiResUrl +
     '?action=reportbad&soft_id=' +
@@ -300,7 +300,7 @@ export const report = function(captchaId) {
     captchaId
   var options = url.parse(reportUrl)
 
-  var request = https.request(options, function(response) {
+  var request = https.request(options, function (response) {
     // var body = ''
     // response.on('data', function(chunk) {
     //   body += chunk
