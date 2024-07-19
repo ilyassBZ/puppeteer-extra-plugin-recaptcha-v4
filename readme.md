@@ -1,4 +1,6 @@
-# puppeteer-extra-plugin-recaptcha [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/berstend/puppeteer-extra/test.yml?branch=master&event=push) [![Discord](https://img.shields.io/discord/737009125862408274)](https://extra.community) [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha)
+# Still under test (do not use)
+
+# puppeteer-extra-plugin-recaptcha-v4 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/berstend/puppeteer-extra/test.yml?branch=master&event=push) [![Discord](https://img.shields.io/discord/737009125862408274)](https://extra.community) [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4)
 
 > A [puppeteer-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra) and [playwright-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/playwright-extra) plugin to solve reCAPTCHAs and hCaptchas automatically.
 
@@ -7,17 +9,17 @@
 ## Install
 
 ```bash
-yarn add puppeteer-extra-plugin-recaptcha
+yarn add puppeteer-extra-plugin-recaptcha-v4
 # - or -
-npm install puppeteer-extra-plugin-recaptcha
+npm install puppeteer-extra-plugin-recaptcha-v4
 ```
 
 If this is your first [puppeteer-extra](https://github.com/berstend/puppeteer-extra) plugin here's everything you need:
 
 ```bash
-yarn add puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha
+yarn add puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 # - or -
-npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha
+npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 ```
 
 <details>
@@ -70,19 +72,19 @@ const puppeteer = require('puppeteer-extra')
 // add recaptcha plugin and provide it your 2captcha token (= their apiKey)
 // 2captcha is the builtin solution provider but others would work as well.
 // Please note: You need to add funds to your 2captcha account for this to work
-const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha')
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-v4')
 puppeteer.use(
   RecaptchaPlugin({
     provider: {
-      id: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN PROVIDER  2CAPTCHA/CAPMONSTER ⚡
-      token: 'XXXXXXX' // REPLACE THIS WITH YOUR OWN 2CAPTCHA/CAPMONSTER API KEY ⚡
+      id: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN PROVIDER  2captcha/capmonster ⚡
+      token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN 2CAPTCHA/CAPMONSTER API KEY ⚡
     },
-    visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
-  })
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  }),
 )
 
 // puppeteer usage as normal
-puppeteer.launch({ headless: true }).then(async browser => {
+puppeteer.launch({ headless: true }).then(async (browser) => {
   const page = await browser.newPage()
   await page.goto('https://www.google.com/recaptcha/api2/demo')
 
@@ -91,7 +93,7 @@ puppeteer.launch({ headless: true }).then(async browser => {
 
   await Promise.all([
     page.waitForNavigation(),
-    page.click(`#recaptcha-demo-submit`)
+    page.click(`#recaptcha-demo-submit`),
   ])
   await page.screenshot({ path: 'response.png', fullPage: true })
   await browser.close()
@@ -106,19 +108,19 @@ puppeteer.launch({ headless: true }).then(async browser => {
 // hence you get perfect type support out of the box :)
 
 import puppeteer from 'puppeteer-extra'
-import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha'
+import RecaptchaPlugin from 'puppeteer-extra-plugin-recaptcha-v4'
 
 puppeteer.use(
   RecaptchaPlugin({
     provider: {
       id: '2captcha', // or 'capmonster'
-      token: 'ENTER_YOUR_2CAPTCHA_API_KEY_HERE' // or API key for capmonster
-    }
-  })
+      token: 'ENTER_YOUR_2CAPTCHA_API_KEY_HERE', // or API key for capmonster
+    },
+  }),
 )
 
 // Puppeteer usage as normal (headless is "false" just for this demo)
-puppeteer.launch({ headless: false }).then(async browser => {
+puppeteer.launch({ headless: false }).then(async (browser) => {
   const page = await browser.newPage()
   await page.goto('https://www.google.com/recaptcha/api2/demo')
 
@@ -127,7 +129,7 @@ puppeteer.launch({ headless: false }).then(async browser => {
 
   await Promise.all([
     page.waitForNavigation(),
-    page.click(`#recaptcha-demo-submit`)
+    page.click(`#recaptcha-demo-submit`),
   ])
   await page.screenshot({ path: 'response.png', fullPage: true })
   await browser.close()
@@ -247,13 +249,8 @@ interface PluginOptions {
 ### Result object
 
 ```js
-const {
-  captchas,
-  filtered,
-  solutions,
-  solved,
-  error
-} = await page.solveRecaptchas()
+const { captchas, filtered, solutions, solved, error } =
+  await page.solveRecaptchas()
 ```
 
 - `captchas` is an array of captchas found in the page
@@ -295,8 +292,8 @@ In addition you might want to disable site isolation, so puppeteer is able to ac
 puppeteer.launch({
   args: [
     '--disable-features=IsolateOrigins,site-per-process,SitePerProcess',
-    '--flag-switches-begin --disable-site-isolation-trials --flag-switches-end'
-  ]
+    '--flag-switches-begin --disable-site-isolation-trials --flag-switches-end',
+  ],
 })
 ```
 
