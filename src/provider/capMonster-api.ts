@@ -5,8 +5,7 @@ var url = require('url')
 var querystring = require('querystring')
 
 var apiKey
-var apiUrl = 'https://api.capmonster.cloud'
-var apiInUrl = 'https://api.capmonster.cloud/in.php'
+var apiUrl = 'api.capmonster.cloud'
 
 var defaultOptions = {
   pollingInterval: 40000,
@@ -16,14 +15,19 @@ var defaultOptions = {
 function pollCaptcha(captchaId, options, invalid, callback) {
   invalid = invalid.bind({ options: options, captchaId: captchaId })
   var intervalId = setInterval(function () {
+    var postData = {
+      clientKey: apiKey,
+      taskId: captchaId,
+      nocache: 1,
+    }
+    const postDataJson = JSON.stringify(postData)
+
     var httpsRequestOptions = {
       method: 'POST',
       hostname: apiUrl,
       path: '/getTaskResult',
       headers: {
-        clientKey: apiKey,
-        taskId: captchaId,
-        nocache: 1,
+        'Content-Type': 'application/json',
       },
     }
     var request = https.request(httpsRequestOptions, function (response) {
@@ -31,7 +35,7 @@ function pollCaptcha(captchaId, options, invalid, callback) {
 
       response.on('data', function (chunk) {
         try {
-          body += chunk.toString()
+          body += chunk
         } catch (error) {
           throw error
         }
@@ -60,6 +64,7 @@ function pollCaptcha(captchaId, options, invalid, callback) {
         callback = function () {} // prevent the callback from being called more than once, if multiple https requests are open at the same time.
       })
     })
+    request.write(postDataJson)
     request.on('error', function (e) {
       request.destroy()
       callback(e)
@@ -84,8 +89,6 @@ export const decodeReCaptcha = function (
     callback = options
     options = defaultOptions
   }
-  var httpsRequestOptions = url.parse(apiInUrl)
-  httpsRequestOptions.method = 'POST'
 
   var postData = {
     key: apiKey,
@@ -102,7 +105,18 @@ export const decodeReCaptcha = function (
   }
   postData.nocache = 1
 
+  //Sending the request to the API to get the captcha ID im using the in.php endpoint : https://api.capmonster.cloud/in.php
+
   postData = querystring.stringify(postData)
+  var httpsRequestOptions = {
+    hostname: apiUrl,
+    path: `/in.php?${postData}`,
+    method: 'POST',
+  }
+
+  //var httpsRequestOptions = url.parse(apiInUrl + '?' + postData)
+  //httpsRequestOptions.method = 'POST'
+
   var request = https.request(httpsRequestOptions, function (response) {
     var body = ''
 
@@ -114,13 +128,10 @@ export const decodeReCaptcha = function (
       if (body.includes('ERROR')) {
         return callback(body)
       }
-      var result = JSON.parse(body)
-      if (result.errorId !== 0) {
-        return callback(result.errorCode)
-      }
 
+      const taskId = body.split('|')[1]
       pollCaptcha(
-        result.taskId,
+        taskId,
         options,
         function (error) {
           var callbackToInitialCallback = callback
@@ -156,20 +167,24 @@ export const decodeReCaptcha = function (
     request.destroy()
     callback(e)
   })
-  request.write(postData)
   request.end()
 }
 
 export const report = function (captchaId) {
-  var reportUrl =
-    apiInUrl +
-    '?action=reportbad&soft_id=' +
-    '&key=' +
-    apiKey +
-    '&id=' +
-    captchaId
-  var options = url.parse(reportUrl)
+  var postData = {
+    clientKey: apiKey,
+    taskId: captchaId,
+  }
+  var postDataJson = JSON.stringify(postData)
 
+  var options = {
+    method: 'POST',
+    hostname: apiUrl,
+    path: '/reportIncorrectTokenCaptcha',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  }
   var request = https.request(options, function (response) {
     // var body = ''
     // response.on('data', function(chunk) {
@@ -177,5 +192,6 @@ export const report = function (captchaId) {
     // })
     // response.on('end', function() {})
   })
+  request.write(postDataJson)
   request.end()
 }
