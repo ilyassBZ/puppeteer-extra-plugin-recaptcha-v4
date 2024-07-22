@@ -30,7 +30,6 @@ function pollCaptcha(captchaId, options, invalid, callback) {
       var body = ''
 
       response.on('data', function (chunk) {
-        console.log(chunk)
         try {
           body += chunk.toString()
         } catch (error) {
@@ -108,14 +107,13 @@ export const decodeReCaptcha = function (
     var body = ''
 
     response.on('data', function (chunk) {
-      try {
-        body += chunk.toString()
-      } catch (error) {
-        throw error
-      }
+      body += chunk
     })
 
     response.on('end', function () {
+      if (body.includes('ERROR')) {
+        return callback(body)
+      }
       var result = JSON.parse(body)
       if (result.errorId !== 0) {
         return callback(result.errorCode)

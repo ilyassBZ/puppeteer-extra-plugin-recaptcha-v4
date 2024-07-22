@@ -27,9 +27,9 @@ async function decodeRecaptchaAsync(
   sitekey: string,
   url: string,
   extraData: any,
-  opts = { pollingInterval: 2000 }
+  opts = { pollingInterval: 2000 },
 ): Promise<DecodeRecaptchaAsyncResult> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const cb = (err: any, result: any, invalid: any) =>
       resolve({ err, result, invalid })
     try {
@@ -48,19 +48,21 @@ async function decodeRecaptchaAsync(
 
 export async function getSolutions(
   captchas: types.CaptchaInfo[] = [],
-  token: string = ''
+  token: string = '',
 ): Promise<types.GetSolutionsResult> {
-  const solutions = await Promise.all(captchas.map(c => getSolution(c, token)))
-  return { solutions, error: solutions.find(s => !!s.error) }
+  const solutions = await Promise.all(
+    captchas.map((c) => getSolution(c, token)),
+  )
+  return { solutions, error: solutions.find((s) => !!s.error) }
 }
 
 async function getSolution(
   captcha: types.CaptchaInfo,
-  token: string
+  token: string,
 ): Promise<types.CaptchaSolution> {
   const solution: types.CaptchaSolution = {
     _vendor: captcha._vendor,
-    provider: PROVIDER_ID
+    provider: PROVIDER_ID,
   }
   try {
     if (!captcha || !captcha.sitekey || !captcha.url || !captcha.id) {
@@ -78,9 +80,8 @@ async function getSolution(
       process.env['CAPMONSTER_PROXY_TYPE'] &&
       process.env['CAPMONSTER_PROXY_ADDRESS']
     ) {
-      extraData['proxyType'] = process.env[
-        'CAPMONSTER_PROXY_TYPE'
-      ].toUpperCase()
+      extraData['proxyType'] =
+        process.env['CAPMONSTER_PROXY_TYPE'].toUpperCase()
       extraData['proxyAddress'] = process.env['CAPMONSTER_PROXY_ADDRESS']
     }
 
@@ -89,10 +90,11 @@ async function getSolution(
       captcha._vendor,
       captcha.sitekey,
       captcha.url,
-      extraData
+      extraData,
     )
+
     debug('Got response', { err, result, invalid })
-    if (err) throw new Error(`${PROVIDER_ID} error: ${err}`)
+    if (err) throw new Error(`${err}`)
     if (!result || !result.text || !result.id) {
       throw new Error(`${PROVIDER_ID} error: Missing response data: ${result}`)
     }
@@ -102,7 +104,7 @@ async function getSolution(
     solution.hasSolution = !!solution.text
     solution.duration = secondsBetweenDates(
       solution.requestAt,
-      solution.responseAt
+      solution.responseAt,
     )
   } catch (error) {
     debug('Error', error)
