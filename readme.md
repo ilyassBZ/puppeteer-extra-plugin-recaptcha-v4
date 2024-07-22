@@ -25,7 +25,7 @@ npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 
 ##### Latest
 
-##### `4.0.2`
+##### `4.0.3`
 
 - Support capMonster (<https://capmonster.cloud/en/>)
 
