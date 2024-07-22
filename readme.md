@@ -1,6 +1,4 @@
-# Still under test (do not use)
-
-# puppeteer-extra-plugin-recaptcha-v4 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/berstend/puppeteer-extra/test.yml?branch=master&event=push) [![Discord](https://img.shields.io/discord/737009125862408274)](https://extra.community) [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4)
+# puppeteer-extra-plugin-recaptcha-v4 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/berstend/puppeteer-extra/test.yml?branch=master&event=push) [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4)
 
 > A [puppeteer-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra) and [playwright-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/playwright-extra) plugin to solve reCAPTCHAs and hCaptchas automatically.
 
@@ -27,7 +25,7 @@ npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 
 ##### Latest
 
-> 🎁 **Note:** Until we've automated changelog updates in markdown files please follow the `#announcements` channel in our [discord server](https://extra.community/) for the latest updates and changelog info.
+##### `4.0.2`
 
 - Support capMonster (<https://capmonster.cloud/en/>)
 
@@ -37,26 +35,6 @@ _Older changelog:_
 
 - Support reCAPTCHAs not in forms ([#57](https://github.com/berstend/puppeteer-extra/issues/57))
 - Make script detection more fuzzy ([#48](https://github.com/berstend/puppeteer-extra/issues/48))
-
-##### `3.1.6`
-
-- We'll now add our custom methods to any existing pages and frames in the browser instance.
-- Fixed reference import path for our ambient declarations.
-
-##### `3.1.5`
-
-- Solving reCAPTCHAs in frames is now supported as well, if need be:
-
-```js
-for (const frame of page.mainFrame().childFrames()) {
-  await frame.solveRecaptchas()
-}
-```
-
-##### `3.1.4`
-
-- Improved TypeScript experience: I found a way to make your TypeScript compiler automatically aware of the additions to the `Page` and `Frame` object (e.g. `page.solveRecaptchas()`).
-- We now print a warning if the provider throws an error (e.g. invalid api key)
 
 </details>
 
@@ -323,6 +301,10 @@ await page.solveRecaptchas()
 
 ---
 
+## Credits
+
+- Thanks to [berstend](https://github.com/berstend) for the original plugin
+
 ## License
 
-Copyright © 2018 - 2023, [berstend̡̲̫̹̠̖͚͓̔̄̓̐̄͛̀͘](https://github.com/berstend). Released under the MIT License.
+Copyright © 2024, [ilyassBz](https://github.com/ilyassBZ). Released under the MIT License.
