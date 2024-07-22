@@ -12,12 +12,12 @@ import * as CapMonster from './provider/capmonster'
 export const BuiltinSolutionProviders: types.SolutionProvider[] = [
   {
     id: TwoCaptcha.PROVIDER_ID,
-    fn: TwoCaptcha.getSolutions
+    fn: TwoCaptcha.getSolutions,
   },
   {
     id: CapMonster.PROVIDER_ID,
-    fn: CapMonster.getSolutions
-  }
+    fn: CapMonster.getSolutions,
+  },
 ]
 
 /**
@@ -44,7 +44,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
       throwOnError: false,
       solveInViewportOnly: false,
       solveScoreBased: false,
-      solveInactiveChallenges: false
+      solveInactiveChallenges: false,
     }
   }
 
@@ -58,7 +58,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
       visualFeedback,
       debugBinding: this.contentScriptDebug.enabled
         ? this.debugBindingName
-        : undefined
+        : undefined,
     }
   }
 
@@ -68,7 +68,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
   private _generateContentScript(
     vendor: types.CaptchaVendor,
     fn: 'findRecaptchas' | 'enterRecaptchaSolutions',
-    data?: any
+    data?: any,
   ) {
     this.debug('_generateContentScript', vendor, fn, data)
     let scriptSource = RecaptchaContentScript.toString()
@@ -119,14 +119,14 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
         this.debug('Filtered out captcha based on provided options', {
           id: c.id,
           reason: c.filteredReason,
-          captcha: c
+          captcha: c,
         })
       }
       return c
     })
     return {
-      captchas: results.filter(c => !c.filtered) as types.CaptchaInfo[],
-      filtered: results.filter(c => c.filtered)
+      captchas: results.filter((c) => !c.filtered) as types.CaptchaInfo[],
+      filtered: results.filter((c) => c.filtered),
     }
   }
 
@@ -135,7 +135,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     // As this might be called very early while recaptcha is still loading
     // we add some extra waiting logic for developer convenience.
     const hasRecaptchaScriptTag = await page.$(
-      `script[src*="/recaptcha/api.js"], script[src*="/recaptcha/enterprise.js"]`
+      `script[src*="/recaptcha/api.js"], script[src*="/recaptcha/enterprise.js"]`,
     )
     this.debug('hasRecaptchaScriptTag', !!hasRecaptchaScriptTag)
     if (hasRecaptchaScriptTag) {
@@ -147,13 +147,13 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
           return Object.keys((window.___grecaptcha_cfg || {}).clients || {}).length
         })()
       `,
-          { polling: 200, timeout: 10 * 1000 }
+          { polling: 200, timeout: 10 * 1000 },
         )
         .catch(this.debug)
       this.debug('waitForRecaptchaClient - end', new Date()) // used as timer
     }
     const hasHcaptchaScriptTag = await page.$(
-      `script[src*="hcaptcha.com/1/api.js"]`
+      `script[src*="hcaptcha.com/1/api.js"]`,
     )
     this.debug('hasHcaptchaScriptTag', !!hasHcaptchaScriptTag)
     if (hasHcaptchaScriptTag) {
@@ -164,7 +164,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
           return window.hcaptcha
         })()
       `,
-        { polling: 200, timeout: 10 * 1000 }
+        { polling: 200, timeout: 10 * 1000 },
       )
       this.debug('wait:hasHcaptchaScriptTag - end', new Date()) // used as timer
     }
@@ -180,21 +180,21 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     }
     // Even without a recaptcha script tag we're trying, just in case.
     const resultRecaptcha: types.FindRecaptchasResult = (await page.evaluate(
-      this._generateContentScript('recaptcha', 'findRecaptchas')
+      this._generateContentScript('recaptcha', 'findRecaptchas'),
     )) as any
     const resultHcaptcha: types.FindRecaptchasResult = (await page.evaluate(
-      this._generateContentScript('hcaptcha', 'findRecaptchas')
+      this._generateContentScript('hcaptcha', 'findRecaptchas'),
     )) as any
 
     const filterResults = this._filterRecaptchas(resultRecaptcha.captchas)
     this.debug(
-      `Filter results: ${filterResults.filtered.length} of ${filterResults.captchas.length} captchas filtered from results.`
+      `Filter results: ${filterResults.filtered.length} of ${filterResults.captchas.length} captchas filtered from results.`,
     )
 
     const response: types.FindRecaptchasResult = {
       captchas: [...filterResults.captchas, ...resultHcaptcha.captchas],
       filtered: filterResults.filtered,
-      error: resultRecaptcha.error || resultHcaptcha.error
+      error: resultRecaptcha.error || resultHcaptcha.error,
     }
     this.debug('findRecaptchas', response)
     if (this.opts.throwOnError && response.error) {
@@ -205,7 +205,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
 
   async getRecaptchaSolutions(
     captchas: types.CaptchaInfo[],
-    provider?: types.SolutionProvider
+    provider?: types.SolutionProvider,
   ) {
     this.debug('getRecaptchaSolutions', { captchaNum: captchas.length })
     provider = provider || this.opts.provider
@@ -219,11 +219,11 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     let fn = provider.fn
     if (!fn) {
       const builtinProvider = BuiltinSolutionProviders.find(
-        p => p.id === (provider || {}).id
+        (p) => p.id === (provider || {}).id,
       )
       if (!builtinProvider || !builtinProvider.fn) {
         throw new Error(
-          `Cannot find builtin provider with id '${provider.id}'.`
+          `Cannot find builtin provider with id '${provider.id}'.`,
         )
       }
       fn = builtinProvider.fn
@@ -232,7 +232,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
       this,
       captchas,
       provider.token,
-      provider.opts || {}
+      provider.opts || {},
     )
     response.error =
       response.error ||
@@ -241,7 +241,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     if (response && response.error) {
       console.warn(
         'PuppeteerExtraPluginRecaptcha: An error occured during "getRecaptchaSolutions":',
-        response.error
+        response.error,
       )
     }
     if (this.opts.throwOnError && response.error) {
@@ -252,32 +252,32 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
 
   async enterRecaptchaSolutions(
     page: Page | Frame,
-    solutions: types.CaptchaSolution[]
+    solutions: types.CaptchaSolution[],
   ) {
     this.debug('enterRecaptchaSolutions', { solutions })
 
-    const hasRecaptcha = !!solutions.find(s => s._vendor === 'recaptcha')
+    const hasRecaptcha = !!solutions.find((s) => s._vendor === 'recaptcha')
     const solvedRecaptcha: types.EnterRecaptchaSolutionsResult = hasRecaptcha
       ? ((await page.evaluate(
           this._generateContentScript('recaptcha', 'enterRecaptchaSolutions', {
-            solutions
-          })
+            solutions,
+          }),
         )) as any)
       : { solved: [] }
-    const hasHcaptcha = !!solutions.find(s => s._vendor === 'hcaptcha')
+    const hasHcaptcha = !!solutions.find((s) => s._vendor === 'hcaptcha')
     const solvedHcaptcha: types.EnterRecaptchaSolutionsResult = hasHcaptcha
       ? ((await page.evaluate(
           this._generateContentScript('hcaptcha', 'enterRecaptchaSolutions', {
-            solutions
-          })
+            solutions,
+          }),
         )) as any)
       : { solved: [] }
 
     const response: types.EnterRecaptchaSolutionsResult = {
       solved: [...solvedRecaptcha.solved, ...solvedHcaptcha.solved],
-      error: solvedRecaptcha.error || solvedHcaptcha.error
+      error: solvedRecaptcha.error || solvedHcaptcha.error,
     }
-    response.error = response.error || response.solved.find(s => !!s.error)
+    response.error = response.error || response.solved.find((s) => !!s.error)
     this.debug('enterRecaptchaSolutions', response)
     if (this.opts.throwOnError && response.error) {
       throw new Error(response.error)
@@ -286,7 +286,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
   }
 
   async solveRecaptchas(
-    page: Page | Frame
+    page: Page | Frame,
   ): Promise<types.SolveRecaptchasResult> {
     this.debug('solveRecaptchas')
     const response: types.SolveRecaptchasResult = {
@@ -294,7 +294,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
       filtered: [],
       solutions: [],
       solved: [],
-      error: null
+      error: null,
     }
     try {
       // If `this.opts.throwOnError` is set any of the
@@ -302,22 +302,18 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
       const {
         captchas,
         filtered,
-        error: captchasError
+        error: captchasError,
       } = await this.findRecaptchas(page)
       response.captchas = captchas
       response.filtered = filtered
 
       if (captchas.length) {
-        const {
-          solutions,
-          error: solutionsError
-        } = await this.getRecaptchaSolutions(response.captchas)
+        const { solutions, error: solutionsError } =
+          await this.getRecaptchaSolutions(response.captchas)
         response.solutions = solutions
 
-        const {
-          solved,
-          error: solvedError
-        } = await this.enterRecaptchaSolutions(page, response.solutions)
+        const { solved, error: solvedError } =
+          await this.enterRecaptchaSolutions(page, response.solutions)
         response.solved = solved
 
         response.error = captchasError || solutionsError || solvedError
@@ -336,7 +332,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     prop.findRecaptchas = async () => this.findRecaptchas(prop)
     prop.getRecaptchaSolutions = async (
       captchas: types.CaptchaInfo[],
-      provider?: types.SolutionProvider
+      provider?: types.SolutionProvider,
     ) => this.getRecaptchaSolutions(captchas, provider)
     prop.enterRecaptchaSolutions = async (solutions: types.CaptchaSolution[]) =>
       this.enterRecaptchaSolutions(prop, solutions)
@@ -353,7 +349,7 @@ export class PuppeteerExtraPluginRecaptcha extends PuppeteerExtraPlugin {
     this._addCustomMethods(page)
 
     // Add custom methods to potential frames as well
-    page.on('frameattached', frame => {
+    page.on('frameattached', (frame) => {
       if (!frame) return
       this._addCustomMethods(frame)
     })
