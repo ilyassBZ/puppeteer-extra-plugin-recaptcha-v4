@@ -38,6 +38,7 @@
     "singleQuote": true
   },
   "keywords": [
+    "capmonster",
     "puppeteer",
     "puppeteer-extra",
     "puppeteer-extra-plugin",
