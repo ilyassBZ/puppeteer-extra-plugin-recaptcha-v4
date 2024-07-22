@@ -20,11 +20,11 @@ export type RecaptchaPluginPageAdditions = {
 
   getRecaptchaSolutions: (
     captchas: CaptchaInfo[],
-    provider?: SolutionProvider
+    provider?: SolutionProvider,
   ) => Promise<GetSolutionsResult>
 
   enterRecaptchaSolutions: (
-    solutions: CaptchaSolution[]
+    solutions: CaptchaSolution[],
   ) => Promise<EnterRecaptchaSolutionsResult>
 
   /** Attempt to detect and solve reCAPTCHAs on this page automatically. 🔮 */
