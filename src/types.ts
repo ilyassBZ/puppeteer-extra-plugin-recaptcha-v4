@@ -65,6 +65,7 @@ export interface CaptchaInfo {
   id?: string // captcha id
   widgetId?: number
   sitekey?: string
+  type?: string
   s?: string // new google site specific property
   isEnterprise?: boolean
   isInViewport?: boolean

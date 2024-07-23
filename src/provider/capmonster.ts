@@ -27,6 +27,7 @@ const providerOptsDefaults: TwoCaptchaProviderOpts = {
 }
 async function decodeRecaptchaAsync(
   token: string,
+  type: string,
   vendor: types.CaptchaVendor,
   sitekey: string,
   url: string,
@@ -39,11 +40,10 @@ async function decodeRecaptchaAsync(
     try {
       solver.setApiKey(token)
 
-      let method = 'userrecaptcha'
-      if (vendor === 'hcaptcha') {
-        method = 'hcaptcha'
+      if (vendor === 'hcaptcha' && !type) {
+        type = 'HCaptchaTaskProxyless'
       }
-      solver.decodeReCaptcha(method, sitekey, url, extraData, opts, cb)
+      solver.decodeReCaptcha(type, sitekey, url, extraData, opts, cb)
     } catch (error) {
       return resolve({ err: error })
     }
@@ -57,7 +57,7 @@ export async function getSolutions(
 ): Promise<types.GetSolutionsResult> {
   opts = { ...providerOptsDefaults, ...opts }
   const solutions = await Promise.all(
-    captchas.map((c) => getSolution(c, token, opts)),
+    captchas.map((c) => getSolution(c, token)),
   )
   return { solutions, error: solutions.find((s) => !!s.error) }
 }
@@ -65,7 +65,6 @@ export async function getSolutions(
 async function getSolution(
   captcha: types.CaptchaInfo,
   token: string,
-  opts: TwoCaptchaProviderOpts,
 ): Promise<types.CaptchaSolution> {
   const solution: types.CaptchaSolution = {
     _vendor: captcha._vendor,
@@ -82,24 +81,31 @@ async function getSolution(
     if (captcha.s) {
       extraData['recaptchaDataSValue'] = captcha.s // google site specific property
     }
-    if (opts.useActionValue && captcha.action) {
-      extraData['action'] = captcha.action // Optional v3/enterprise action
-    }
-    if (opts.useEnterpriseFlag && captcha.isEnterprise) {
-      extraData['enterprise'] = 1
-    }
+    // if (opts.useActionValue && captcha.action) {
+    //   extraData['action'] = captcha.action // Optional v3/enterprise action
+    // }
+    // if (opts.useEnterpriseFlag && captcha.isEnterprise) {
+    //   extraData['enterprise'] = 1
+    // }
 
-    if (
-      process.env['CAPMONSTER_PROXY_TYPE'] &&
-      process.env['CAPMONSTER_PROXY_ADDRESS']
-    ) {
-      extraData['proxyType'] =
-        process.env['CAPMONSTER_PROXY_TYPE'].toUpperCase()
-      extraData['proxyAddress'] = process.env['CAPMONSTER_PROXY_ADDRESS']
+    if (captcha.type && !captcha.type.includes('Proxyless')) {
+      if (
+        process.env['CAPMONSTER_PROXY_TYPE'] &&
+        process.env['CAPMONSTER_PROXY_ADDRESS']
+      ) {
+        extraData['proxyType'] =
+          process.env['CAPMONSTER_PROXY_TYPE'].toUpperCase()
+        extraData['proxyAddress'] = process.env['CAPMONSTER_PROXY_ADDRESS']
+        extraData['proxyPort'] = process.env['CAPMONSTER_PROXY_PORT']
+      }
+    }
+    if (!captcha.type) {
+      captcha.type = 'RecaptchaV2TaskProxyless'
     }
 
     const { err, result, invalid } = await decodeRecaptchaAsync(
       token,
+      captcha.type,
       captcha._vendor,
       captcha.sitekey,
       captcha.url,

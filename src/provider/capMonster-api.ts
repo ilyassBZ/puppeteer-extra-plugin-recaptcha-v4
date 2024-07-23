@@ -1,7 +1,6 @@
 // TODO: Create our own API wrapper
 
 var https = require('https')
-var querystring = require('querystring')
 
 var apiKey
 var apiUrl = 'api.capmonster.cloud'
@@ -12,7 +11,6 @@ var defaultOptions = {
 }
 
 function pollCaptcha(captchaId, options, invalid, callback) {
-  const startTimer = Date.now()
   invalid = invalid.bind({ options: options, captchaId: captchaId })
   var postData = {
     clientKey: apiKey,
@@ -67,8 +65,6 @@ function pollCaptcha(captchaId, options, invalid, callback) {
     })
     request.end()
   }, options.pollingInterval || defaultOptions.pollingInterval)
-
-  console.log('Time', Date.now() - startTimer)
 }
 
 export const setApiKey = function (key) {
@@ -89,27 +85,35 @@ export const decodeReCaptcha = function (
   }
 
   var postData = {
-    key: apiKey,
-    method: captchaMethod,
-    pageURL: pageUrl,
-    ...extraData,
+    clientKey: apiKey,
+    task: {
+      type: captchaMethod,
+      websiteURL: pageUrl,
+      websiteKey: captcha,
+      ...extraData,
+    },
   }
 
-  if (captchaMethod === 'userrecaptcha') {
-    postData.googlekey = captcha
-  }
-  if (captchaMethod === 'hcaptcha') {
-    postData.sitekey = captcha
-  }
-  postData.nocache = 1
+  // if (captchaMethod === 'userrecaptcha') {
+  //   postData.googlekey = captcha
+  // }
+  // if (captchaMethod === 'hcaptcha') {
+  //   postData.sitekey = captcha
+  // }
+  // postData.nocache = 1
 
   //Sending the request to the API to get the captcha ID im using the in.php endpoint : https://api.capmonster.cloud/in.php
 
-  postData = querystring.stringify(postData)
+  var postDataJson = JSON.stringify(postData)
   var httpsRequestOptions = {
     method: 'POST',
     hostname: apiUrl,
-    path: `/in.php?${postData}`,
+    path: `/createTask`,
+    headers: {
+      'Content-Type': 'application/json',
+      'Content-Length': Buffer.byteLength(postDataJson),
+      Host: apiUrl,
+    },
   }
 
   //var httpsRequestOptions = url.parse(apiInUrl + '?' + postData)
@@ -123,13 +127,13 @@ export const decodeReCaptcha = function (
     })
 
     response.on('end', function () {
-      if (body.includes('ERROR')) {
-        return callback(body)
+      var res = JSON.parse(body)
+      if (res.errorCode) {
+        return callback(res.errorCode)
       }
 
-      const taskId = body.split('|')[1]
       pollCaptcha(
-        taskId,
+        res.taskId,
         options,
         function (error) {
           var callbackToInitialCallback = callback
@@ -161,6 +165,7 @@ export const decodeReCaptcha = function (
       )
     })
   })
+  request.write(postDataJson)
   request.on('error', function (e) {
     request.destroy()
     callback(e)

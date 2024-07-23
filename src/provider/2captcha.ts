@@ -23,7 +23,7 @@ export interface TwoCaptchaProviderOpts {
 
 const providerOptsDefaults: TwoCaptchaProviderOpts = {
   useEnterpriseFlag: false, // Seems to make solving chance worse?
-  useActionValue: true
+  useActionValue: true,
 }
 
 async function decodeRecaptchaAsync(
@@ -32,9 +32,9 @@ async function decodeRecaptchaAsync(
   sitekey: string,
   url: string,
   extraData: any,
-  opts = { pollingInterval: 2000 }
+  opts = { pollingInterval: 2000 },
 ): Promise<DecodeRecaptchaAsyncResult> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     const cb = (err: any, result: any, invalid: any) =>
       resolve({ err, result, invalid })
     try {
@@ -54,23 +54,23 @@ async function decodeRecaptchaAsync(
 export async function getSolutions(
   captchas: types.CaptchaInfo[] = [],
   token: string = '',
-  opts: TwoCaptchaProviderOpts = {}
+  opts: TwoCaptchaProviderOpts = {},
 ): Promise<types.GetSolutionsResult> {
   opts = { ...providerOptsDefaults, ...opts }
   const solutions = await Promise.all(
-    captchas.map(c => getSolution(c, token, opts))
+    captchas.map((c) => getSolution(c, token, opts)),
   )
-  return { solutions, error: solutions.find(s => !!s.error) }
+  return { solutions, error: solutions.find((s) => !!s.error) }
 }
 
 async function getSolution(
   captcha: types.CaptchaInfo,
   token: string,
-  opts: TwoCaptchaProviderOpts
+  opts: TwoCaptchaProviderOpts,
 ): Promise<types.CaptchaSolution> {
   const solution: types.CaptchaSolution = {
     _vendor: captcha._vendor,
-    provider: PROVIDER_ID
+    provider: PROVIDER_ID,
   }
   try {
     if (!captcha || !captcha.sitekey || !captcha.url || !captcha.id) {
@@ -89,18 +89,21 @@ async function getSolution(
     if (opts.useEnterpriseFlag && captcha.isEnterprise) {
       extraData['enterprise'] = 1
     }
-    
-    if (process.env['2CAPTCHA_PROXY_TYPE'] && process.env['2CAPTCHA_PROXY_ADDRESS']) {
-         extraData['proxytype'] = process.env['2CAPTCHA_PROXY_TYPE'].toUpperCase()
-         extraData['proxy'] = process.env['2CAPTCHA_PROXY_ADDRESS']
+
+    if (
+      process.env['2CAPTCHA_PROXY_TYPE'] &&
+      process.env['2CAPTCHA_PROXY_ADDRESS']
+    ) {
+      extraData['proxytype'] = process.env['2CAPTCHA_PROXY_TYPE'].toUpperCase()
+      extraData['proxy'] = process.env['2CAPTCHA_PROXY_ADDRESS']
     }
-      
+
     const { err, result, invalid } = await decodeRecaptchaAsync(
       token,
       captcha._vendor,
       captcha.sitekey,
       captcha.url,
-      extraData
+      extraData,
     )
     debug('Got response', { err, result, invalid })
     if (err) throw new Error(`${PROVIDER_ID} error: ${err}`)
@@ -113,7 +116,7 @@ async function getSolution(
     solution.hasSolution = !!solution.text
     solution.duration = secondsBetweenDates(
       solution.requestAt,
-      solution.responseAt
+      solution.responseAt,
     )
   } catch (error) {
     debug('Error', error)

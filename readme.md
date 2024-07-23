@@ -25,7 +25,30 @@ npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 
 ##### Latest
 
-- Fixing bug of capMonster solving response. From 90s - 150s to 40s - 80s max
+- Now u can can use the type u want to solve the captcha by default it choose RecaptchaV2TaskProxyless or HcaptchaTaskProxyless depending on the vendor (RecaptchaV3TaskProxyless, RecaptchaV3Task, RecaptchaV2Task, HcaptchaTaskProxyless, HcaptchaTask)
+
+#### Example
+
+```js
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: {
+      id: 'capmonster',
+      token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN CAPMONSTER API KEY ⚡
+      type: 'RecaptchaV3TaskProxyless', //OPTIONAL or 'HcaptchaTaskProxyless , RecaptchaV3TaskProxyless, RecaptchaV3Task, RecaptchaV2Task, HcaptchaTask' (default is RecaptchaV2TaskProxyless)
+    },
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  }),
+)
+```
+
+```
+
+```
+
+##### `4.0.5`
+
+- Fixing bug of capMonster solving response. From 90s - 150s to 40s - 80s max (in case of recaptcha v2)
 
 ##### `4.0.4`
 
@@ -58,6 +81,7 @@ puppeteer.use(
     provider: {
       id: 'capmonster',
       token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN CAPMONSTER API KEY ⚡
+      type: 'RecaptchaV3TaskProxyless', //OPTIONAL or 'HcaptchaTaskProxyless , RecaptchaV3TaskProxyless, RecaptchaV3Task, RecaptchaV2Task, HcaptchaTask' (default is RecaptchaV2TaskProxyless)
     },
     visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
   }),
