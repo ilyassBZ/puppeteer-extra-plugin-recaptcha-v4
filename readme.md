@@ -1,4 +1,4 @@
-# puppeteer-extra-plugin-recaptcha-v4 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/berstend/puppeteer-extra/test.yml?branch=master&event=push) [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4)
+# puppeteer-extra-plugin-recaptcha-v4 [![npm](https://img.shields.io/npm/dt/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4) [![npm](https://img.shields.io/npm/v/puppeteer-extra-plugin-recaptcha.svg)](https://www.npmjs.com/package/puppeteer-extra-plugin-recaptcha-v4)
 
 > A [puppeteer-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra) and [playwright-extra](https://github.com/berstend/puppeteer-extra/tree/master/packages/playwright-extra) plugin to solve reCAPTCHAs and hCaptchas automatically.
 
@@ -25,7 +25,9 @@ npm install puppeteer puppeteer-extra puppeteer-extra-plugin-recaptcha-v4
 
 ##### Latest
 
-##### `4.0.3`
+- Fixing bug of capMonster solving response. From 90s - 150s to 40s - 80s max
+
+##### `4.0.4`
 
 - Support capMonster (<https://capmonster.cloud/en/>)
 
@@ -40,7 +42,7 @@ _Older changelog:_
 
 ## Usage
 
-The plugin essentially provides a mighty `page.solveRecaptchas()` method that does everything needed automagically.
+### Example using capmonster
 
 ```js
 // puppeteer-extra is a drop-in replacement for puppeteer,
@@ -54,8 +56,8 @@ const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-v4')
 puppeteer.use(
   RecaptchaPlugin({
     provider: {
-      id: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN PROVIDER  2captcha/capmonster ⚡
-      token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN 2CAPTCHA/CAPMONSTER API KEY ⚡
+      id: 'capmonster',
+      token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN CAPMONSTER API KEY ⚡
     },
     visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
   }),
@@ -78,6 +80,43 @@ puppeteer.launch({ headless: true }).then(async (browser) => {
 })
 ```
 
+### Example using 2captcha
+
+````js
+// puppeteer-extra is a drop-in replacement for puppeteer,
+// it augments the installed puppeteer with plugin functionality
+const puppeteer = require('puppeteer-extra')
+
+// add recaptcha plugin and provide it your 2captcha token (= their apiKey)
+// 2captcha is the builtin solution provider but others would work as well.
+// Please note: You need to add funds to your 2captcha account for this to work
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-v4')
+puppeteer.use(
+  RecaptchaPlugin({
+    provider: {
+      id: '2captcha',
+      token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+    },
+    visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
+  }),
+)
+
+// puppeteer usage as normal
+puppeteer.launch({ headless: true }).then(async (browser) => {
+  const page = await browser.newPage()
+  await page.goto('https://www.google.com/recaptcha/api2/demo')
+
+  // That's it, a single line of code to solve reCAPTCHAs 🎉
+  await page.solveRecaptchas()
+
+  await Promise.all([
+    page.waitForNavigation(),
+    page.click(`#recaptcha-demo-submit`),
+  ])
+  await page.screenshot({ path: 'response.png', fullPage: true })
+  await browser.close()
+})
+
 <details>
  <summary><strong>TypeScript usage</strong></summary>
 
@@ -92,8 +131,8 @@ puppeteer.use(
   RecaptchaPlugin({
     provider: {
       id: '2captcha', // or 'capmonster'
-      token: 'ENTER_YOUR_2CAPTCHA_API_KEY_HERE', // or API key for capmonster
-    },
+      token: 'ENTER_YOUR_2CAPTCHA_OR_CAPMONSTER_API_KEY_HERE',
+},
   }),
 )
 
@@ -112,7 +151,7 @@ puppeteer.launch({ headless: false }).then(async (browser) => {
   await page.screenshot({ path: 'response.png', fullPage: true })
   await browser.close()
 })
-```
+````
 
 </details><br>
 
@@ -124,21 +163,7 @@ DEBUG=puppeteer-extra,puppeteer-extra-plugin:* node myscript.js
 
 _**Tip:** The recaptcha plugin works really well together with the [stealth plugin](https://github.com/berstend/puppeteer-extra/tree/master/packages/puppeteer-extra-plugin-stealth)._
 
-## Motivation 🏴
-
-These days [captchas](https://en.wikipedia.org/wiki/CAPTCHA) are unfortunately everywhere, with [reCAPTCHA](https://developers.google.com/recaptcha/) having the biggest "market share" in that space (> 80%). The situation got really bad, with privacy minded users (tracking blocker, VPNs) being penalized heavily and having to solve a lot of reCAPTCHA challenges constantly while browsing the web.
-
-The stated reasons for this omnipresent captcha plague vary from site owners having to protect themselves against increasingly malicious actors to some believing that we're essentially forced into free labour to train Google's various machine learning endeavours.
-
-In any case I strongly feel that captchas in their current form have failed. They're a much bigger obstacle and annoyance to humans than to robots, which renders them useless. My anarchist contribution to this discussion is to demonstrate this absurdity, with a plugin for robots with which **a single line of code is all it takes to bypass reCAPTCHAs on any site**.
-
-> Note: Since `v3.3.0` the plugin will solve [hCaptchas](https://www.hcaptcha.com/) as well, as they've gained significant marketshare through their Cloudflare partnership.
-
 ## Provider
-
-I thought about having the plugin solve captchas directly (e.g. using the [audio challenge](https://github.com/dessant/buster) and speech-to-text APIs), but external solution providers are so cheap and reliable that there is really no benefit in doing that. ¯\\\_(ツ)\_/¯
-
-_Please note:_ You need a provider configured for this plugin to do it's magic. If you decide to use the built-in 2captcha provider you need to add funds to your 2captcha account.
 
 ### capmonster
 
@@ -147,6 +172,8 @@ CapMonster Cloud is a cloud-based service that automates the solving of CAPTCHA 
 - Cost: 1000 reCAPTCHAs v2 for 0.6 USD
 - Cost: 1000 reCAPTCHAs v3 for 0.9 USD
 - Cost: 1000 hCaptcha for 0.8 USD
+- Delay: Solving a reCAPTCHA takes between 10 to 60 seconds
+- Error rate (incorrect solutions): Very rare
 
 ### 2captcha
 

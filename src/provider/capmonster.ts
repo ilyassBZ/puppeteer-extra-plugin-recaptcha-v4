@@ -21,6 +21,10 @@ export interface TwoCaptchaProviderOpts {
   useActionValue?: boolean
 }
 
+const providerOptsDefaults: TwoCaptchaProviderOpts = {
+  useEnterpriseFlag: false, // Seems to make solving chance worse?
+  useActionValue: true,
+}
 async function decodeRecaptchaAsync(
   token: string,
   vendor: types.CaptchaVendor,
@@ -49,9 +53,11 @@ async function decodeRecaptchaAsync(
 export async function getSolutions(
   captchas: types.CaptchaInfo[] = [],
   token: string = '',
+  opts: TwoCaptchaProviderOpts = {},
 ): Promise<types.GetSolutionsResult> {
+  opts = { ...providerOptsDefaults, ...opts }
   const solutions = await Promise.all(
-    captchas.map((c) => getSolution(c, token)),
+    captchas.map((c) => getSolution(c, token, opts)),
   )
   return { solutions, error: solutions.find((s) => !!s.error) }
 }
@@ -59,6 +65,7 @@ export async function getSolutions(
 async function getSolution(
   captcha: types.CaptchaInfo,
   token: string,
+  opts: TwoCaptchaProviderOpts,
 ): Promise<types.CaptchaSolution> {
   const solution: types.CaptchaSolution = {
     _vendor: captcha._vendor,
@@ -74,6 +81,12 @@ async function getSolution(
     const extraData = {}
     if (captcha.s) {
       extraData['recaptchaDataSValue'] = captcha.s // google site specific property
+    }
+    if (opts.useActionValue && captcha.action) {
+      extraData['action'] = captcha.action // Optional v3/enterprise action
+    }
+    if (opts.useEnterpriseFlag && captcha.isEnterprise) {
+      extraData['enterprise'] = 1
     }
 
     if (

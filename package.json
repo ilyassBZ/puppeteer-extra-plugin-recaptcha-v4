@@ -1,6 +1,6 @@
 {
   "name": "puppeteer-extra-plugin-recaptcha-v4",
-  "version": "4.0.4",
+  "version": "4.0.5",
   "description": "A puppeteer-extra plugin to solve reCAPTCHAs and hCaptchas automatically.",
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
@@ -10,7 +10,7 @@
   ],
   "repository": "ilyassBZ/puppeteer-extra-plugin-recaptcha-v4",
   "homepage": "https://github.com/ilyassBZ/puppeteer-extra-plugin-recaptcha-v4",
-  "author": "berstend",
+  "author": "ilyassBz",
   "license": "MIT",
   "scripts": {
     "clean": "rimraf dist/*",
@@ -67,13 +67,13 @@
     "tslint": "^5.20.1",
     "tslint-config-prettier": "^1.18.0",
     "tslint-config-standard": "^9.0.0",
-    "typescript": "^5.5.3"
+    "typescript": "^5.5.3",
+    "playwright-core": "*"
   },
   "dependencies": {
     "debug": "^4.1.1",
     "merge-deep": "^3.0.2",
-    "playwright-core": "^1.45.2",
-    "puppeteer-extra-plugin": "^3.2.3"
+    "puppeteer-extra-plugin": "*"
   },
   "peerDependencies": {
     "playwright-extra": "*",

@@ -1,62 +1,58 @@
 // TODO: Create our own API wrapper
 
 var https = require('https')
-var url = require('url')
 var querystring = require('querystring')
 
 var apiKey
 var apiUrl = 'api.capmonster.cloud'
 
 var defaultOptions = {
-  pollingInterval: 40000,
-  retries: 4,
+  pollingInterval: 2500,
+  retries: 2,
 }
 
 function pollCaptcha(captchaId, options, invalid, callback) {
+  const startTimer = Date.now()
   invalid = invalid.bind({ options: options, captchaId: captchaId })
-  var intervalId = setInterval(function () {
-    var postData = {
-      clientKey: apiKey,
-      taskId: captchaId,
-      nocache: 1,
-    }
-    const postDataJson = JSON.stringify(postData)
+  var postData = {
+    clientKey: apiKey,
+    taskId: captchaId,
+  }
+  var postDataJson = JSON.stringify(postData)
 
+  var intervalId = setInterval(function () {
     var httpsRequestOptions = {
       method: 'POST',
       hostname: apiUrl,
       path: '/getTaskResult',
       headers: {
         'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(postDataJson),
+        Host: apiUrl,
       },
     }
     var request = https.request(httpsRequestOptions, function (response) {
       var body = ''
 
       response.on('data', function (chunk) {
-        try {
-          body += chunk
-        } catch (error) {
-          throw error
-        }
+        body += chunk
       })
 
       response.on('end', function () {
-        const res = JSON.parse(body)
-        if (res.status === 'processing') {
+        var result = JSON.parse(body)
+        if (result.status === 'processing') {
           return
         }
-
         clearInterval(intervalId)
 
-        if (res.status !== 'ready') {
-          callback(res) // error
+        if (result.status !== 'ready') {
+          callback(result.status) // error
         } else {
           callback(
             null,
             {
               id: captchaId,
-              text: res.solution.gRecaptchaResponse,
+              text: result.solution.gRecaptchaResponse,
             },
             invalid,
           )
@@ -71,6 +67,8 @@ function pollCaptcha(captchaId, options, invalid, callback) {
     })
     request.end()
   }, options.pollingInterval || defaultOptions.pollingInterval)
+
+  console.log('Time', Date.now() - startTimer)
 }
 
 export const setApiKey = function (key) {
@@ -109,9 +107,9 @@ export const decodeReCaptcha = function (
 
   postData = querystring.stringify(postData)
   var httpsRequestOptions = {
+    method: 'POST',
     hostname: apiUrl,
     path: `/in.php?${postData}`,
-    method: 'POST',
   }
 
   //var httpsRequestOptions = url.parse(apiInUrl + '?' + postData)
@@ -193,5 +191,4 @@ export const report = function (captchaId) {
     // response.on('end', function() {})
   })
   request.write(postDataJson)
-  request.end()
 }

@@ -3,7 +3,6 @@ import sourceMaps from 'rollup-plugin-sourcemaps'
 import typescript from 'rollup-plugin-typescript2'
 const pkg = require('./package.json')
 
-const entryFile = 'index'
 const banner = `
 /*!
  * ${pkg.name} v${pkg.version} by ${pkg.author}
