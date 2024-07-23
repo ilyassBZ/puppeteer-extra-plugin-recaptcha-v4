@@ -53,11 +53,12 @@ async function decodeRecaptchaAsync(
 export async function getSolutions(
   captchas: types.CaptchaInfo[] = [],
   token: string = '',
+  type: string = '',
   opts: TwoCaptchaProviderOpts = {},
 ): Promise<types.GetSolutionsResult> {
   opts = { ...providerOptsDefaults, ...opts }
   const solutions = await Promise.all(
-    captchas.map((c) => getSolution(c, token)),
+    captchas.map((c) => getSolution(c, token, type)),
   )
   return { solutions, error: solutions.find((s) => !!s.error) }
 }
@@ -65,6 +66,7 @@ export async function getSolutions(
 async function getSolution(
   captcha: types.CaptchaInfo,
   token: string,
+  type: string,
 ): Promise<types.CaptchaSolution> {
   const solution: types.CaptchaSolution = {
     _vendor: captcha._vendor,
@@ -88,7 +90,7 @@ async function getSolution(
     //   extraData['enterprise'] = 1
     // }
 
-    if (captcha.type && !captcha.type.includes('Proxyless')) {
+    if (type && !type.includes('Proxyless')) {
       if (
         process.env['CAPMONSTER_PROXY_TYPE'] &&
         process.env['CAPMONSTER_PROXY_ADDRESS']
@@ -99,13 +101,13 @@ async function getSolution(
         extraData['proxyPort'] = process.env['CAPMONSTER_PROXY_PORT']
       }
     }
-    if (!captcha.type) {
-      captcha.type = 'RecaptchaV2TaskProxyless'
+    if (!type) {
+      type = 'RecaptchaV2TaskProxyless'
     }
 
     const { err, result, invalid } = await decodeRecaptchaAsync(
       token,
-      captcha.type,
+      type,
       captcha._vendor,
       captcha.sitekey,
       captcha.url,

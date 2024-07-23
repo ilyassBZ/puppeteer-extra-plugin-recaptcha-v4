@@ -34,6 +34,7 @@ export type RecaptchaPluginPageAdditions = {
 export interface SolutionProvider<TOpts = any> {
   id?: string
   token?: string
+  type?: string
   fn?: (captchas: CaptchaInfo[], token?: string) => Promise<GetSolutionsResult>
   opts?: TOpts // Optional options ;-)
 }
@@ -65,7 +66,6 @@ export interface CaptchaInfo {
   id?: string // captcha id
   widgetId?: number
   sitekey?: string
-  type?: string
   s?: string // new google site specific property
   isEnterprise?: boolean
   isInViewport?: boolean

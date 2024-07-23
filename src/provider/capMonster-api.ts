@@ -6,8 +6,8 @@ var apiKey
 var apiUrl = 'api.capmonster.cloud'
 
 var defaultOptions = {
-  pollingInterval: 2500,
-  retries: 2,
+  pollingInterval: 2000,
+  retries: 3,
 }
 
 function pollCaptcha(captchaId, options, invalid, callback) {
