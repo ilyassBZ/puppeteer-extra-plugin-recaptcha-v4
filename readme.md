@@ -81,7 +81,6 @@ puppeteer.use(
     provider: {
       id: 'capmonster',
       token: 'XXXXXXX', // REPLACE THIS WITH YOUR OWN CAPMONSTER API KEY ⚡
-      type: 'RecaptchaV3TaskProxyless', //OPTIONAL or 'HcaptchaTaskProxyless , RecaptchaV3TaskProxyless, RecaptchaV3Task, RecaptchaV2Task, HcaptchaTask' (default is RecaptchaV2TaskProxyless)
     },
     visualFeedback: true, // colorize reCAPTCHAs (violet = detected, green = solved)
   }),
